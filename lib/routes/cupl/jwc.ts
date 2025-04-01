@@ -40,7 +40,7 @@ export const route: Route = {
                     link: a[1].attribs.href,
                     title: $(a[1]).text(),
                     pubDate: parseDate(elem_.find('span').text(), 'YYYY-MM-DD'),
-                    category: $(a[0]).text().slice(0, -1),
+                    category: [$(a[0]).text().slice(0, -1)],
                     description: '',
                 };
             });
