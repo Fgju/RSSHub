@@ -6,13 +6,10 @@ import n from 'eslint-plugin-n';
 import globals from 'globals';
 import tsParser from '@typescript-eslint/parser';
 import yamlParser from 'yaml-eslint-parser';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
 import { FlatCompat } from '@eslint/eslintrc';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = import.meta.dirname;
 const compat = new FlatCompat({
     baseDirectory: __dirname,
     recommendedConfig: js.configs.recommended,
@@ -24,11 +21,12 @@ export default [{
         '**/.vscode',
         '**/docker-compose.yml',
         '!.github',
-        'assets/build/radar-rules.js',
+        'assets/build',
         'lib/routes-deprecated',
         'lib/router.js',
         '**/babel.config.js',
         'scripts/docker/minify-docker.js',
+        'dist',
     ],
 }, ...compat.extends(
     'eslint:recommended',
@@ -97,7 +95,7 @@ unicorn.configs.recommended,
         'no-new-func': 'error',
         'no-restricted-imports': 'error',
 
-        'no-restricted-syntax': ['warn', {
+        'no-restricted-syntax': ['error', {
             selector: "CallExpression[callee.property.name='get'][arguments.length=0]",
             message: "Please use .toArray() instead.",
         }, {
@@ -133,7 +131,6 @@ unicorn.configs.recommended,
         }],
 
         // unicorn
-        'unicorn/consistent-destructuring': 'warn',
         'unicorn/consistent-function-scoping': 'warn',
         'unicorn/explicit-length-check': 'off',
 
@@ -142,7 +139,6 @@ unicorn.configs.recommended,
             ignore: [String.raw`.*\.(yaml|yml)$`, String.raw`RequestInProgress\.js$`],
         }],
 
-        'unicorn/new-for-builtins': 'off',
         'unicorn/no-array-callback-reference': 'warn',
         'unicorn/no-array-reduce': 'warn',
         'unicorn/no-await-expression-member': 'off',
@@ -150,7 +146,7 @@ unicorn.configs.recommended,
         'unicorn/no-hex-escape': 'warn',
         'unicorn/no-null': 'off',
         'unicorn/no-object-as-default-parameter': 'warn',
-        'unicorn/no-nested-ternary': 'warn',
+        'unicorn/no-nested-ternary': 'off',
         'unicorn/no-process-exit': 'off',
         'unicorn/no-useless-switch-case': 'off',
 
@@ -184,19 +180,16 @@ unicorn.configs.recommended,
 
         'unicorn/prefer-code-point': 'warn',
         'unicorn/prefer-global-this': 'off',
-        'unicorn/prefer-logical-operator-over-ternary': 'warn',
+        'unicorn/prefer-import-meta-properties': 'warn',
         'unicorn/prefer-module': 'off',
-        'unicorn/prefer-node-protocol': 'off',
 
-        'unicorn/prefer-number-properties': ['warn', {
+        'unicorn/prefer-number-properties': ['error', {
             checkInfinity: false,
+            checkNaN: false,
         }],
 
-        'unicorn/prefer-object-from-entries': 'warn',
-        'unicorn/prefer-regexp-test': 'warn',
         'unicorn/prefer-spread': 'warn',
-        'unicorn/prefer-string-replace-all': 'warn',
-        'unicorn/prefer-string-slice': 'off',
+        'unicorn/prefer-string-slice': 'warn',
 
         'unicorn/prefer-switch': ['warn', {
             emptyDefaultCase: 'do-nothing-comment',
@@ -232,12 +225,7 @@ unicorn.configs.recommended,
 
         // https://github.com/eslint-community/eslint-plugin-n
         // node specific rules
-        'n/no-extraneous-require': ['error', {
-            allowModules: [
-                'puppeteer-extra-plugin-user-preferences',
-                'puppeteer-extra-plugin-user-data-dir',
-            ],
-        }],
+        'n/no-extraneous-require': 'error',
 
         'n/no-deprecated-api': 'warn',
         'n/no-missing-import': 'off',
@@ -258,7 +246,7 @@ unicorn.configs.recommended,
         'yml/no-empty-mapping-value': 'off',
     },
 }, {
-        files: ['.puppeteerrc.cjs', 'api/vercel.ts'],
+        files: ['.puppeteerrc.cjs'],
         rules: {
             '@typescript-eslint/no-require-imports': 'off',
         },

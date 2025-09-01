@@ -1,6 +1,5 @@
 import { Route } from '@/types';
 import { load } from 'cheerio';
-const __dirname = getCurrentPath(import.meta.url);
 
 import puppeteer from '@/utils/puppeteer';
 import ofetch from '@/utils/ofetch';
@@ -11,7 +10,6 @@ import { crawler, analyzer } from './zjzwfw';
 import timezone from '@/utils/timezone';
 import path from 'node:path';
 import { art } from '@/utils/render';
-import { getCurrentPath } from '@/utils/helpers';
 
 export const route: Route = {
     path: '/hangzhou/zwfw',
@@ -40,7 +38,7 @@ async function handler() {
     const host = 'https://www.hangzhou.gov.cn/col/col1256349/index.html';
     const response = await ofetch(host);
 
-    const browser = await puppeteer({ stealth: true });
+    const browser = await puppeteer();
     const link = host;
     const formatted = response
         .replace('<script type="text/xml">', '')

@@ -1,12 +1,12 @@
 import { Route } from '@/types';
-import { getCurrentPath } from '@/utils/helpers';
-const __dirname = getCurrentPath(import.meta.url);
 
 import got from '@/utils/got';
 import { load } from 'cheerio';
 import { parseDate } from '@/utils/parse-date';
 import { art } from '@/utils/render';
 import path from 'node:path';
+
+const headers = { Accept: 'text/css' };
 
 export const route: Route = {
     path: '/:source?/:id?',
@@ -20,10 +20,16 @@ export const route: Route = {
         supportBT: false,
         supportPodcast: false,
         supportScihub: false,
+        nsfw: true,
     },
     radar: [
         {
-            source: ['coomer.su/:source/user/:id', 'coomer.su/'],
+            source: ['coomer.st/'],
+            target: '',
+        },
+        {
+            source: ['coomer.st/:source/user/:id'],
+            target: '/:source/:id',
         },
     ],
     name: 'Posts',
@@ -47,13 +53,9 @@ async function handler(ctx) {
     const id = ctx.req.param('id');
     const isPosts = source === 'posts';
 
-    const rootUrl = 'https://coomer.su';
+    const rootUrl = 'https://coomer.st';
     const apiUrl = `${rootUrl}/api/v1`;
-    const currentUrl = isPosts ? `${apiUrl}/posts` : `${apiUrl}/${source}/user/${id}`;
-
-    const headers = {
-        cookie: '__ddg2=sBQ4uaaGecmfEUk7',
-    };
+    const currentUrl = isPosts ? `${apiUrl}/posts` : `${apiUrl}/${source}/user/${id}/posts`;
 
     const response = await got({
         method: 'get',
@@ -62,9 +64,9 @@ async function handler(ctx) {
     });
     const responseData = isPosts ? response.data.posts : response.data;
 
-    const author = isPosts ? '' : await getAuthor(currentUrl, headers);
+    const author = isPosts ? '' : await getAuthor(`${apiUrl}/${source}/user/${id}`);
     const title = isPosts ? 'Coomer Posts' : `Posts of ${author} from ${source} | Coomer`;
-    const image = isPosts ? `${rootUrl}/favicon.ico` : `https://img.coomer.su/icons/${source}/${id}`;
+    const image = isPosts ? `${rootUrl}/favicon.ico` : `https://img.coomer.st/icons/${source}/${id}`;
     const items = responseData
         .filter((i) => i.content || i.attachments)
         .slice(0, limit)
@@ -84,7 +86,7 @@ async function handler(ctx) {
                     extension: attachment.path.replace(/.*\./, '').toLowerCase(),
                 });
             }
-            const filesHTML = art(path.join(__dirname, 'templates', 'source.art'), { i });
+            const filesHTML = art(path.join(__dirname, 'templates/source.art'), { i });
             let $ = load(filesHTML);
             const coomerFiles = $('img, a, audio, video').map(function () {
                 return $(this).prop('outerHTML')!;
@@ -133,7 +135,7 @@ async function handler(ctx) {
                 description: desc,
                 author,
                 pubDate: parseDate(i.published),
-                guid: `${apiUrl}/${i.service}/user/${i.user}/post/${i.id}`,
+                guid: `coomer:${i.service}:${i.user}:post:${i.id}`,
                 link: `${rootUrl}/${i.service}/user/${i.user}/post/${i.id}`,
                 ...enclosureInfo,
             };
@@ -147,7 +149,7 @@ async function handler(ctx) {
     };
 }
 
-async function getAuthor(currentUrl, headers) {
+async function getAuthor(currentUrl) {
     const profileResponse = await got({
         method: 'get',
         url: `${currentUrl}/profile`,
